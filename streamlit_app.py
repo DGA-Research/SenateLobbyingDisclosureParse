@@ -4,12 +4,7 @@ from typing import Dict, List, Optional
 
 import streamlit as st
 
-from lda_api import (
-    LDAClient,
-    SIMPLE_CSV_FIELDS,
-    _flatten_record,
-    _simplified_row,
-)
+from lda_api import LDAClient, SIMPLE_CSV_FIELDS, _flatten_record, _simplified_row
 
 
 st.set_page_config(page_title="LDA Filings Explorer", layout="wide")
@@ -51,9 +46,23 @@ def fetch_filings(
     )
 
 
+def get_secret_token() -> Optional[str]:
+    token = None
+    try:
+        token = st.secrets["api_token"]
+    except KeyError:
+        pass
+    return token
+
+
 with st.sidebar:
     st.header("Configuration")
-    api_token = st.text_input("API Token", type="password")
+    api_token = get_secret_token()
+    if api_token:
+        st.caption("Using API token from `.streamlit/secrets.toml`.")
+    else:
+        st.error("Add `api_token = \"...\"` to `.streamlit/secrets.toml` to authenticate.")
+
     query_mode = st.radio("Search Mode", ("Client", "Lobbyist"))
 
     client_name = client_id = lobbyist_name = lobbyist_id = None
